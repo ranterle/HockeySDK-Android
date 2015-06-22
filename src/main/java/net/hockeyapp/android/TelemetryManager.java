@@ -7,6 +7,8 @@ import com.microsoft.applicationinsights.library.ApplicationInsights;
 import com.microsoft.applicationinsights.library.TelemetryClient;
 
 
+import net.hockeyapp.android.utils.Util;
+
 import java.util.Map;
 
 public class TelemetryManager {
@@ -35,8 +37,8 @@ public class TelemetryManager {
     public void register(Context appContext, Application application, String appIdentifier, String serverURL){
 
         // TODO: The approach of exposing configurations is completely different to the one we use in HockeyApp. I don't think that exposing multiple register() methods will do the trick. We could expose wrapped versions of our Config and User objects.
-
-        ApplicationInsights.setup(appContext, application, appIdentifier);
+        String instrumentationKey = Util.convertAppIdentifierToIkey(appIdentifier);
+        ApplicationInsights.setup(appContext, application, instrumentationKey);
 
         if(serverURL != null){
             ApplicationInsights.getConfig().setEndpointUrl(serverURL);
