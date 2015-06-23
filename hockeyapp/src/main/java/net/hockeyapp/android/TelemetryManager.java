@@ -23,6 +23,8 @@ public class TelemetryManager {
         PAGE_VIEWS
     }
 
+    private static EnumSet<AutoMode> currentModes;
+
     /**
      * Registers new Feedback manager. Providing {@code appContext} as well as {@code application}
      * will enable auto collection of sessions and page views.
@@ -54,7 +56,10 @@ public class TelemetryManager {
         String instrumentationKey = Util.convertAppIdentifierToIkey(appIdentifier);
         ApplicationInsights.setup(appContext, application, instrumentationKey);
         ApplicationInsights.setExceptionTrackingDisabled(true);
-        setAutoCollectionModes(modes);
+        currentModes = modes;
+        if(modes == null){
+           ApplicationInsights.setAutoCollectionDisabledAtStartup(true);
+        }
     }
 
     /**
@@ -66,6 +71,7 @@ public class TelemetryManager {
      */
     public static void execute() {
         ApplicationInsights.start();
+        setAutoCollectionModes(currentModes);
     }
 
     /*
