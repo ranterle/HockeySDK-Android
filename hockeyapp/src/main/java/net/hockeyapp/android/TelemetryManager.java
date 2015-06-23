@@ -227,8 +227,8 @@ public class TelemetryManager {
         ApplicationInsights.setUserId(user.getId());
     }
 
-    public static TelemetryManagerConfig getTelemetryConfig() {
-        return (TelemetryManagerConfig)ApplicationInsights.getConfig();
+    public static void setTelemetryManagerConfig(TelemetryManagerConfig config) {
+        ApplicationInsights.INSTANCE.setConfig(config);
     }
 
     /**

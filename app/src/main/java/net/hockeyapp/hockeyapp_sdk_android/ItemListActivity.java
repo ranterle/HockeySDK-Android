@@ -73,8 +73,10 @@ public class ItemListActivity extends FragmentActivity
         TelemetryManager.setUserConfig(current);
 
         // Settings related to queueing & sending
-        TelemetryManager.getTelemetryConfig().setEndpointUrl("http://dc-int.services.visualstudio.com/vs/track");
-        TelemetryManager.getTelemetryConfig().setMaxBatchCount(5);
+        TelemetryManagerConfig config = new TelemetryManagerConfig();
+        config.setMaxBatchCount(5);
+        config.setEndpointUrl("http://dc-int.services.visualstudio.com/v2/track");
+        TelemetryManager.setTelemetryManagerConfig(config);
 
         TelemetryManager.execute();
     }
