@@ -8,6 +8,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 
+import com.microsoft.applicationinsights.library.ApplicationInsights;
+
 import net.hockeyapp.android.FeedbackManager;
 import net.hockeyapp.android.TelemetryManager;
 import net.hockeyapp.hockeyapp_sdk_android.dummy.DummyContent;
@@ -133,7 +135,7 @@ public class ItemListFragment extends ListFragment {
                 mCallbacks.onItemSelected(DummyContent.ITEMS.get(position).id);
                 break;
             case 5:
-                // TODO: Add synchronize to public interface
+                ApplicationInsights.sendPendingData();
                 break;
             case 6:
                 FeedbackManager.showFeedbackActivity(getActivity());

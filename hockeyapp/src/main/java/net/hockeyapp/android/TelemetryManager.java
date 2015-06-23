@@ -169,4 +169,8 @@ public class TelemetryManager {
     public static void trackNewSession() {
         TelemetryClient.getInstance().trackNewSession();
     }
+
+    public void sendPendingData(){
+        ApplicationInsights.sendPendingData();
+    }
 }
