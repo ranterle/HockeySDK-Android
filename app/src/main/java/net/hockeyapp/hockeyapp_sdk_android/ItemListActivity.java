@@ -4,10 +4,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 
+import com.microsoft.applicationinsights.contracts.User;
+
 import net.hockeyapp.android.UpdateManager;
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.FeedbackManager;
 import net.hockeyapp.android.TelemetryManager;
+import net.hockeyapp.android.TelemetryManager.AutoMode;
+import net.hockeyapp.android.objects.TelemetryManagerConfig;
+
+import java.util.EnumSet;
 
 /**
  * An activity representing a list of Items. This activity
@@ -56,7 +62,21 @@ public class ItemListActivity extends FragmentActivity
         }
         UpdateManager.register(this, APP_ID);
         FeedbackManager.register(this, APP_ID);
-        TelemetryManager.registerAndStart(this.getApplicationContext(), this.getApplication(), APP_ID);
+
+        // Base set up
+        EnumSet<AutoMode> modes = EnumSet.of(AutoMode.SESSIONS, AutoMode.PAGE_VIEWS);
+        TelemetryManager.register(this.getApplicationContext(), this.getApplication(), APP_ID, modes);
+
+        // Settings related to user
+        User current = new User();
+        current.setId("Test Man");
+        TelemetryManager.setUserConfig(current);
+
+        // Settings related to queueing & sending
+        TelemetryManager.getTelemetryConfig().setEndpointUrl("http://dc-int.services.visualstudio.com/vs/track");
+        TelemetryManager.getTelemetryConfig().setMaxBatchCount(5);
+
+        TelemetryManager.execute();
     }
 
     @Override

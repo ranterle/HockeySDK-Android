@@ -10,9 +10,18 @@ import com.microsoft.applicationinsights.library.TelemetryClient;
 import net.hockeyapp.android.objects.TelemetryManagerConfig;
 import net.hockeyapp.android.utils.Util;
 
+import java.util.EnumSet;
 import java.util.Map;
 
 public class TelemetryManager {
+
+    /*
+     *  Enum which represents the different auto collection features
+     */
+    public static enum AutoMode {
+        SESSIONS,
+        PAGE_VIEWS
+    }
 
     /**
      * Registers new Feedback manager. Providing {@code appContext} as well as {@code application}
@@ -21,63 +30,66 @@ public class TelemetryManager {
      * @param appContext    the application context of the app
      * @param application   the application app used for the app
      * @param appIdentifier the HockeyApp app identifier of your app
+     * @param modes         an enum set that contains the enabled auto collection features
      */
-    public static void registerAndStart(Context appContext, Application application, String appIdentifier) {
-        register(appContext, application, appIdentifier, null);
-        ApplicationInsights.start();
-    }
-
-    /**
-     * Registers new Telemetry manager. Providing {@code appContext} as well as {@code application}
-     * will enable auto collection of sessions and page views and start to collect & send telemetry.
-     * If you want to customize your usage of telemetry, use {@link }, do you custom settings for
-     * telemetry, e.g. {@link TelemetryManager#disableAutoSessions()} and call {@link TelemetryManager#start()}
-     * to start collecting telemetry data.
-     *
-     * @param appContext    the application context of the app
-     * @param application   the application app used for the app
-     * @param appIdentifier the HockeyApp app identifier of your app
-     * @param serverURL     the server URL for sending telemetry data.
-     */
-    public static void registerAndStart(Context appContext, Application application, String appIdentifier, String serverURL) {
-        register(appContext, application, appIdentifier, serverURL); //TODO move server URL to own setter?
-        ApplicationInsights.start();
+    public static void registerAndExecute(Context appContext, Application application, String appIdentifier, EnumSet<AutoMode> modes) {
+        register(appContext, application, appIdentifier, modes);
+        execute();
     }
 
     /**
      * Registers new Telemetry manager. Providing {@code appContext} as well as {@code application}
      * will enable auto collection of sessions and page views but won't start the telemetry feature.
      * Use this method if you want to customize TelemetryManager to initialize it.
-     * Do your custom settings before calling {@link TelemetryManager#start()}.
+     * Do your custom settings before calling {@link TelemetryManager#execute()}.
      * If you don't need to customize this feature, also
      *
      * @param appContext    the application context of the app
      * @param application   the application app used for the app
      * @param appIdentifier the HockeyApp app identifier of your app
-     * @param serverURL     the server URL for sending telemetry data.
-     * @see TelemetryManager#registerAndStart(Context, Application, String, String)
+     * @param modes         an enum set that contains the enabled auto collection features
+     * @see TelemetryManager#registerAndExecute(Context, Application, String, java.util.EnumSet)
      */
-    public static void register(Context appContext, Application application, String appIdentifier, String serverURL) {
+    public static void register(Context appContext, Application application, String appIdentifier, EnumSet<AutoMode> modes) {
         String instrumentationKey = Util.convertAppIdentifierToIkey(appIdentifier);
         ApplicationInsights.setup(appContext, application, instrumentationKey);
-
-        if (serverURL != null) {
-            ApplicationInsights.getConfig().setEndpointUrl(serverURL);
-        }
         ApplicationInsights.setExceptionTrackingDisabled(true);
+        setAutoCollectionModes(modes);
     }
 
     /**
      * Will start TelemetryManager after it has been set up using
      *
-     * @see TelemetryManager#register(Context, Application, String, String)
+     * @see TelemetryManager#register(Context, Application, String, java.util.EnumSet)
      * Is called by
-     * @see TelemetryManager#registerAndStart(Context, Application, String)
-     * and
-     * @see TelemetryManager#registerAndStart(Context, Application, String, String)
+     * @see TelemetryManager#registerAndExecute(Context, Application, String, java.util.EnumSet)
      */
-    public static void start() {
+    public static void execute() {
         ApplicationInsights.start();
+    }
+
+    /*
+     * Configures the auto collection features based on a given enum set.
+     *
+     * @param modes an enum set containing enabled features
+     */
+    public static void setAutoCollectionModes(EnumSet<AutoMode> modes){
+
+        if(modes == null){
+            modes = EnumSet.noneOf(AutoMode.class);
+        }
+
+        if(modes.contains(AutoMode.SESSIONS)){
+           ApplicationInsights.enableAutoSessionManagement();
+       }else{
+           ApplicationInsights.disableAutoSessionManagement();
+       }
+
+       if(modes.contains(AutoMode.PAGE_VIEWS)){
+           ApplicationInsights.enableAutoPageViewTracking();
+       }else{
+            ApplicationInsights.disableAutoPageViewTracking();
+       }
     }
 
     /**
@@ -200,6 +212,11 @@ public class TelemetryManager {
         TelemetryClient.getInstance().trackNewSession();
     }
 
+    /**
+     * Sends out pending telemetry data items. Normally they are send out in a bundle after a
+     * certain time range or because a certain number of items has been reached.
+     * @see net.hockeyapp.android.objects.TelemetryManagerConfig
+     */
     public void sendPendingData() {
         ApplicationInsights.sendPendingData();
     }
@@ -210,65 +227,8 @@ public class TelemetryManager {
         ApplicationInsights.setUserId(user.getId());
     }
 
-    //TODO not very nice to have a class called ApplicationInsightsConfig.
-    //I replaced this with a (not necessary) subclass to not expose anything that reads "ApplicationInsights"
-    public static void setTelemetryConfig(TelemetryManagerConfig config) {
-        ApplicationInsights.INSTANCE.setConfig(config);
-    }
-
-    /**
-     * Enables all auto-collection features
-     */
-    public static void enableAutoCollection() {
-        ApplicationInsights.enableAutoCollection();
-    }
-
-    /**
-     * Disables all auto-collection features
-     */
-    public static void disableAutoCollection() {
-        ApplicationInsights.disableAutoCollection();
-    }
-
-    /**
-     * Enables auto session management
-     */
-    public static void enableAutoSessions() {
-        ApplicationInsights.enableAutoSessionManagement();
-    }
-
-    /**
-     * Disables auto session management
-     */
-    public static void disableAutoSessions() {
-        ApplicationInsights.disableAutoSessionManagement();
-    }
-
-    /**
-     * Enables auto pageviews
-     */
-    public static void enableAutoPageViews() {
-        ApplicationInsights.enableAutoPageViewTracking();
-    }
-
-    /**
-     * Disables auto pageviews
-     */
-    public static void disableAutoPageViews() {
-        ApplicationInsights.disableAutoPageViewTracking();
-    }
-
-    /**
-     * Enable / disable auto collection of telemetry data at startup.
-     *
-     * @param disabled if set to true, the auto collection feature will be disabled at app start
-     *                 To enable/disable auto collection features at runtime, use
-     *                 {@link TelemetryManager#disableAutoCollection()} or the more specific
-     *                 {@link TelemetryManager#disableAutoSessions()} ()},
-     *                 {@link TelemetryManager#disableAutoPageViews()} ()}
-     */
-    public static void setAutoCollectionDisabledAtStartup(Boolean disabled) {
-        ApplicationInsights.setAutoCollectionDisabledAtStartup(disabled);
+    public static TelemetryManagerConfig getTelemetryConfig() {
+        return (TelemetryManagerConfig)ApplicationInsights.getConfig();
     }
 
     /**
@@ -279,6 +239,4 @@ public class TelemetryManager {
     public static void renewSession(String sessionId) {
         ApplicationInsights.renewSession(sessionId);
     }
-
-
 }
