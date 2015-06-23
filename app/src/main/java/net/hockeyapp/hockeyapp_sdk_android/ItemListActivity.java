@@ -56,8 +56,7 @@ public class ItemListActivity extends FragmentActivity
         }
         UpdateManager.register(this, APP_ID);
         FeedbackManager.register(this, APP_ID);
-        TelemetryManager.register(this.getApplicationContext(), this.getApplication(), APP_ID);
-
+        TelemetryManager.registerAndStart(this.getApplicationContext(), this.getApplication(), APP_ID);
     }
 
     @Override
